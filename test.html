@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Restless test suite</title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.5.1/jquery.min.js"></script>
+        <script type="text/javascript" src="json2.js"></script>
+        <script type="text/javascript" src="restless.js"></script>
+        <style type="text/css">
+            .test {
+                border: 1px solid #999;
+                background: red; /* Default to failure */
+                margin: 4px;
+                padding: 2px;
+            }
+            .success {
+                background: #0F0;
+            }
+        </style>
+    </head>
+    <body>
+        <h1 id="status">Test</h1>
+        <div class="test" data-input="" data-expected="">Test empty string</div>
+        <div class="test" data-input="test" data-expected="test">Test literal string</div>
+        <div class="test" data-input="{test=foo}" data-expected="foo">Test default values</div>
+        <div class="test" data-input="{test=bar}" data-expected="bar">Test default values</div>
+        <div class="test" data-input="{test=foo}" data-context="{&quot;test&quot;: &quot;bar&quot;}" data-expected="bar">Test override default values</div>
+        <div  data-context="{&quot;test&quot;: &quot;baz&quot;}">
+            <div class="test" data-input="{test=foo}" data-expected="baz">Test override default values</div>
+            <div class="test" data-input="test/{test=foo}" data-expected="test/baz">Test literal and template together</div>
+        </div>
+        <script type="text/javascript">
+            $(function() { restless.test($); });
+        </script>
+    </body>
+</html>
