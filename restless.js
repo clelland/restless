@@ -46,7 +46,11 @@ restless = (function() {
                     var r = part.replacements[i];
                     var v = r['var'] && context[r['var']] || r['default'];
                     if (v instanceof Array) {
-                        replacements.push(\u1403.map(v,(part.flags==='+'?encodeURI:encodeReserved)).join(','));
+                        if (r.modifier === '+') {
+                            replacements.push(\u1403.map(v,function(val){ return r['var']+'.'+(part.flags==='+'?encodeURI:encodeReserved)(val)}).join(','));
+                        } else {
+                            replacements.push(\u1403.map(v,(part.flags==='+'?encodeURI:encodeReserved)).join(','));
+                        }
                     } else {
                         replacements.push((part.flags==='+'?encodeURI:encodeReserved)(v));
                     }
@@ -58,7 +62,7 @@ restless = (function() {
     }
 
     function tokenize(string) {
-        var expression = /\{(\+)?((\w+)(=(\w+))?(,(\w+)(=(\w+))?)*)\}/;
+        var expression = /\{(\+)?((\w+)([+*])?(=(\w+))?(,(\w+)([+*])?(=(\w+))?)*)\}/;
         var parts = [];
         while (string) {
             var index = string.search(expression);
@@ -68,7 +72,13 @@ restless = (function() {
                 var replacements = [];
                 for (var i = 0; i < vars.length; i++) {
                     var varparts = vars[i].split('=');
-                    replacements.push({ 'var': varparts[0], 'default': varparts[1] });
+                    var modifier = varparts[0].charAt(varparts[0].length-1);
+                    if (modifier === '+' || modifier === '*') {
+                        varparts[0] = varparts[0].slice(0,varparts[0].length-1);
+                    } else {
+                        modifier = null;
+                    }
+                    replacements.push({ 'var': varparts[0], 'default': varparts[1], 'modifier': modifier });
                 }
                 parts.push({ replacements: replacements, flags: flags });
                 string = string.slice(match[0].length);
