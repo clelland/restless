@@ -36,29 +36,39 @@ restless = (function() {
 
     function _resolve(parts, context) {
         var output = [];
-        for (var index=0; index < parts.length; index++) {
-            var part = parts[index];
-            if (part.literal) {
-                output.push(part.literal);
-            } else {
-                var replacements = [];
-                for (var i = 0; i < part.replacements.length; i++) {
-                    var r = part.replacements[i];
-                    var v = r['var'] && context[r['var']] || r['default'];
-                    if (v instanceof Array) {
-                        if (r.modifier === '+') {
-                            replacements.push(\u1403.map(v,function(val){ return r['var']+'.'+(part.flags==='+'?encodeURI:encodeReserved)(val)}).join(','));
+        try {
+            for (var index=0; index < parts.length; index++) {
+                var part = parts[index];
+                if (part.literal) {
+                    output.push(part.literal);
+                } else {
+                    var replacements = [];
+                    for (var i = 0; i < part.replacements.length; i++) {
+                        var r = part.replacements[i];
+                        var v = r['var'] && context[r['var']] || r['default'];
+                        if (v instanceof Array) {
+                            if (r.modifier === '+') {
+                                replacements.push(\u1403.map(v,function(val){ return r['var']+'.'+(part.flags==='+'?encodeURI:encodeReserved)(val)}).join(','));
+                            } else {
+                                replacements.push(\u1403.map(v,(part.flags==='+'?encodeURI:encodeReserved)).join(','));
+                            }
                         } else {
-                            replacements.push(\u1403.map(v,(part.flags==='+'?encodeURI:encodeReserved)).join(','));
+                            replacements.push((part.flags==='+'?encodeURI:encodeReserved)(v));
                         }
-                    } else {
-                        replacements.push((part.flags==='+'?encodeURI:encodeReserved)(v));
                     }
+                    output.push(replacements.join(','));
                 }
-                output.push(replacements.join(','));
+            }
+            return output.join("");
+        } catch (e) {
+            if (e instanceof TypeError) {
+                console.log(e);
+                console.trace();
+                return "";
+            } else {
+                throw e;
             }
         }
-        return output.join("");
     }
 
     function tokenize(string) {
