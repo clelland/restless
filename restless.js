@@ -12,7 +12,12 @@ restless = (function() {
                 var replacements = [];
                 for (var i = 0; i < part.replacements.length; i++) {
                     var r = part.replacements[i];
-                    replacements.push(r['var'] && context[r['var']] || r['default']);
+                    var v = r['var'] && context[r['var']] || r['default'];
+                    if (v instanceof Array) {
+                        replacements.push(v.join(','));
+                    } else {
+                        replacements.push(v);
+                    }
                 }
                 output.push(replacements.join(','));
             }
