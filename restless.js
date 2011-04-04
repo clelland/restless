@@ -9,20 +9,31 @@ restless = (function() {
             if (part.literal) {
                 output.push(part.literal);
             } else {
-                output.push((part['var'] && context[part['var']]) || part['default']);
+                var replacements = [];
+                for (var i = 0; i < part.replacements.length; i++) {
+                    var r = part.replacements[i];
+                    replacements.push(r['var'] && context[r['var']] || r['default']);
+                }
+                output.push(replacements.join(','));
             }
         }
         return output.join("");
     }
 
     function tokenize(string) {
-        var replacement = /\{(\w+)(=(\w+))?\}/;
+        var expression = /\{((\w+)(=(\w+))?(,(\w+)(=(\w+))?)*)\}/;
         var parts = [];
         while (string) {
-            var index = string.search(replacement);
+            var index = string.search(expression);
             if (index === 0) {
-                var match = replacement.exec(string);
-                parts.push({ 'var': match[1], 'default': match[3] });
+                var match = expression.exec(string);
+                var vars = match[1].split(',');
+                var replacements = [];
+                for (var i = 0; i < vars.length; i++) {
+                    var varparts = vars[i].split('=');
+                    replacements.push({ 'var': varparts[0], 'default': varparts[1] });
+                }
+                parts.push({ replacements: replacements });
                 string = string.slice(match[0].length);
             } else {
                 var part = (index === -1) ? string : string.slice(0, index);
