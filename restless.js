@@ -1,3 +1,18 @@
+\u1403 = (function() {
+
+    function map(a,c) {
+        var i=0,o=[];
+        for (;i<a.length;i++) {
+            o.push(c(a[i]));
+        }
+        return o;
+    }
+    return {
+        map: map
+    };
+
+})();
+
 restless = (function() {
 
     var version = "0.1";
