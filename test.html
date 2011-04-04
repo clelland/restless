@@ -28,6 +28,22 @@
             <div class="test" data-input="{test=foo}" data-expected="baz">Test override default values</div>
             <div class="test" data-input="test/{test=foo}" data-expected="test/baz">Test literal and template together</div>
         </div>
+        <!-- Draft test suite -->
+        <div data-context="{&quot;var&quot;: &quot;value&quot;, &quot;hello&quot;: &quot;Hello World!&quot;, &quot;undef&quot;: null, &quot;empty&quot;: &quot;&quot;, &quot;list&quot;: [ &quot;val1&quot;, &quot;val2&quot;, &quot;val3&quot; ], &quot;keys&quot;: {&quot;key1&quot;: &quot;val1&quot;, &quot;key2&quot;: &quot;val2&quot;}, &quot;path&quot;: &quot;/foo/bar&quot;, &quot;x&quot;: &quot;1024&quot;, &quot;y&quot;: &quot;768&quot; }">
+            <div class="test" data-input="{var}" data-expected="value">3.3.1</div>
+            <div class="test" data-input="{hello}" data-expected="Hello%20World%21">3.3.2</div>
+            <div class="test" data-input="{path}/here" data-expected="%2Ffoo%2Fbar/here">3.3.3</div>
+            <div class="test" data-input="{x,y}" data-expected="1024,768">3.3.4</div>
+            <div class="test" data-input="{var=default}" data-expected="value">3.3.5</div>
+            <div class="test" data-input="{undef=default}" data-expected="default">3.3.6</div>
+            <div class="test" data-input="{list}" data-expected="val1,val2,val3">3.3.7</div>
+            <div class="test" data-input="{list*}" data-expected="val1,val2,val3">3.3.8</div>
+            <div class="test" data-input="{list+}" data-expected="list.val1,list.val2,list.val3">3.3.9</div>
+            <div class="test" data-input="{keys}" data-expected="key1,val1,key2,val2">3.3.10</div>
+            <div class="test" data-input="{keys*}" data-expected="key1,val1,key2,val2">3.3.11</div>
+            <div class="test" data-input="{keys+}" data-expected="keys.key1,val1,keys.key2,val2">3.3.12</div>
+
+        </div>
         <script type="text/javascript">
             $(function() { restless.test($); });
         </script>
