@@ -42,8 +42,12 @@ restless = (function() {
             var context;
             try {
                 context = JSON.parse($elem.closest('[data-context^="{"]').attr('data-context'));
-            } catch (SyntaxError) {
-                context = {};
+            } catch (e) {
+                if (e instanceof SyntaxError) {
+                    context = {};
+                } else {
+                    throw e;
+                }
             }
             if (template.resolve(context) == $elem.attr('data-expected')) {
                 $elem.addClass("success");
