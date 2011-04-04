@@ -6,7 +6,11 @@ restless = (function() {
         var output = [];
         for (var index=0; index < parts.length; index++) {
             var part = parts[index];
-            output.push((part['var'] && context[part['var']]) || part['default']);
+            if (part.literal) {
+                output.push(part.literal);
+            } else {
+                output.push((part['var'] && context[part['var']]) || part['default']);
+            }
         }
         return output.join("");
     }
@@ -22,7 +26,7 @@ restless = (function() {
                 string = string.slice(match[0].length);
             } else {
                 var part = (index === -1) ? string : string.slice(0, index);
-                parts.push({ 'default': part });
+                parts.push({ 'literal': part });
                 string = (index === -1) ? "" : string.slice(index);
             }
         }
