@@ -1,28 +1,3 @@
-\u1403 = (function() {
-
-    function map(a,c) {
-        var i=0,o=[];
-        for (;i<a.length;i++) {
-            o.push(c(a[i]));
-        }
-        return o;
-    }
-
-    function filter(a,c) {
-        var i=0,o=[];
-        for (;i<a.length;i++) {
-            if (c(a[i])) o.push(a[i]);
-        }
-        return o;
-    }
-
-    return {
-        map: map,
-        filter: filter
-    };
-
-})();
-
 restless = (function() {
 
     var version = "0.1";
@@ -48,6 +23,47 @@ restless = (function() {
         return (value === "") || (!!value);
     }
 
+    function component(operator, varname, value, modifier) {
+        if (operator === '+') {
+            value = encodeURI(value);
+        } else {
+            value = encodeReserved(value);
+        }
+        if (modifier === '+') {
+            value = varname + '.' + value;
+        }
+        return value;
+    }
+
+    function components(operator, varname, value, modifier) {
+        var out = [];
+        if (value instanceof Array) {
+            for (var i=0; i < value.length; i++) {
+                out.push(component(operator, varname, value[i], modifier));
+            }
+        } else if (value instanceof Object) {
+            for (var key in value) {
+                if (value.hasOwnProperty(key)) {
+                    out.push(component(null, varname, key, modifier));
+                    out.push(component(operator, null, value[key], null));
+                }
+            }
+        } else if (isNotEmpty(value)) {
+            out.push(component(operator, varname, value, modifier));
+        }
+        return out;
+    }
+
+    function replacementValue(operator, replacements, context) {
+        var componentList = [];
+        for (var i=0; i < replacements.length; i++) {
+            var r = replacements[i];
+            var v = r.varname && (isNotEmpty(context[r.varname]) ? context[r.varname] : r['default']);
+            componentList = componentList.concat(components(operator, r.varname, v, r.modifier));
+        }
+        return componentList.join(',');
+    }
+
     function _resolve(parts, context) {
         var output = [];
         try {
@@ -56,32 +72,7 @@ restless = (function() {
                 if (part.literal) {
                     output.push(part.literal);
                 } else {
-                    var replacements = [];
-                    for (var i = 0; i < part.replacements.length; i++) {
-                        var r = part.replacements[i];
-                        var v = r['varname'] && context[r['varname']] || r['default'];
-                        if (v instanceof Array) {
-                            if (r.modifier === '+') {
-                                replacements.push(\u1403.map(v,function(val){ return r['varname']+'.'+(part.operator==='+'?encodeURI:encodeReserved)(val)}).join(','));
-                            } else {
-                                replacements.push(\u1403.map(v,(part.operator==='+'?encodeURI:encodeReserved)).join(','));
-                            }
-                        } else if (v instanceof Object) {
-                            for (var key in v) {
-                                if (v.hasOwnProperty(key)) {
-                                    if (r.modifier === '+') {
-                                        replacements.push(r['varname'] + '.' + key);
-                                    } else {
-                                        replacements.push(key);
-                                    }
-                                    replacements.push(v[key]);
-                                }
-                            }
-                        } else if (isNotEmpty(v)) {
-                            replacements.push((part.operator==='+'?encodeURI:encodeReserved)(v));
-                        }
-                    }
-                    output.push(\u1403.filter(replacements,isNotEmpty).join(','));
+                    output.push(replacementValue(part.operator, part.replacements, context));
                 }
             }
             return output.join("");
