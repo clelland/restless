@@ -45,15 +45,15 @@ restless = (function() {
                     var replacements = [];
                     for (var i = 0; i < part.replacements.length; i++) {
                         var r = part.replacements[i];
-                        var v = r['var'] && context[r['var']] || r['default'];
+                        var v = r['varname'] && context[r['varname']] || r['default'];
                         if (v instanceof Array) {
                             if (r.modifier === '+') {
-                                replacements.push(\u1403.map(v,function(val){ return r['var']+'.'+(part.flags==='+'?encodeURI:encodeReserved)(val)}).join(','));
+                                replacements.push(\u1403.map(v,function(val){ return r['varname']+'.'+(part.operator==='+'?encodeURI:encodeReserved)(val)}).join(','));
                             } else {
-                                replacements.push(\u1403.map(v,(part.flags==='+'?encodeURI:encodeReserved)).join(','));
+                                replacements.push(\u1403.map(v,(part.operator==='+'?encodeURI:encodeReserved)).join(','));
                             }
                         } else {
-                            replacements.push((part.flags==='+'?encodeURI:encodeReserved)(v));
+                            replacements.push((part.operator==='+'?encodeURI:encodeReserved)(v));
                         }
                     }
                     output.push(replacements.join(','));
@@ -78,19 +78,19 @@ restless = (function() {
             var index = string.search(expression);
             if (index === 0) {
                 var match = expression.exec(string);
-                var flags = match[1], vars = match[2].split(',');
+                var operator = match[1], variableList = match[2].split(',');
                 var replacements = [];
-                for (var i = 0; i < vars.length; i++) {
-                    var varparts = vars[i].split('=');
-                    var modifier = varparts[0].charAt(varparts[0].length-1);
+                for (var i = 0; i < variableList.length; i++) {
+                    var varspec = variableList[i].split('=');
+                    var modifier = varspec[0].charAt(varspec[0].length-1);
                     if (modifier === '+' || modifier === '*') {
-                        varparts[0] = varparts[0].slice(0,varparts[0].length-1);
+                        varspec[0] = varspec[0].slice(0,varspec[0].length-1);
                     } else {
                         modifier = null;
                     }
-                    replacements.push({ 'var': varparts[0], 'default': varparts[1], 'modifier': modifier });
+                    replacements.push({ 'varname': varspec[0], 'default': varspec[1], 'modifier': modifier });
                 }
-                parts.push({ replacements: replacements, flags: flags });
+                parts.push({ replacements: replacements, operator: operator });
                 string = string.slice(match[0].length);
             } else {
                 var part = (index === -1) ? string : string.slice(0, index);
