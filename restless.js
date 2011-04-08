@@ -45,7 +45,7 @@ restless = (function() {
     }
 
     function isNotEmpty(value) {
-        return (value === "") || (value != null);
+        return (value === "") || (!!value);
     }
 
     function _resolve(parts, context) {
