@@ -52,6 +52,17 @@ restless = (function() {
                             } else {
                                 replacements.push(\u1403.map(v,(part.operator==='+'?encodeURI:encodeReserved)).join(','));
                             }
+                        } else if (v instanceof Object) {
+                            for (var key in v) {
+                                if (v.hasOwnProperty(key)) {
+                                    if (r.modifier === '+') {
+                                        replacements.push(r['varname'] + '.' + key);
+                                    } else {
+                                        replacements.push(key);
+                                    }
+                                    replacements.push(v[key]);
+                                }
+                            }
                         } else {
                             replacements.push((part.operator==='+'?encodeURI:encodeReserved)(v));
                         }
