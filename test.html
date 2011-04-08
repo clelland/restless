@@ -43,6 +43,20 @@
             <div class="test" data-input="{keys*}" data-expected="key1,val1,key2,val2">3.3.11</div>
             <div class="test" data-input="{keys+}" data-expected="keys.key1,val1,keys.key2,val2">3.3.12</div>
 
+            <div class="test" data-input="{+var}" data-expected="value">3.4.1</div>
+            <div class="test" data-input="{+hello}" data-expected="Hello%20World!">3.4.2</div>
+            <div class="test" data-input="{+path}/here" data-expected="/foo/bar/here">3.4.3</div>
+            <div class="test" data-input="{+path,x}/here" data-expected="/foo/bar,1024/here">3.4.4</div>
+            <div class="test" data-input="{+path}{x}/here" data-expected="/foo/bar1024/here">3.4.5</div>
+            <div class="test" data-input="{+empty}/here" data-expected="/here">3.4.6</div>
+            <div class="test" data-input="{+undef}/here" data-expected="/here">3.4.7</div>
+            <div class="test" data-input="{+list}" data-expected="val1,val2,val3">3.4.8</div>
+            <div class="test" data-input="{+list*}" data-expected="val1,val2,val3">3.4.9</div>
+            <div class="test" data-input="{+list+}" data-expected="list.val1,list.val2,list.val3">3.4.10</div>
+            <div class="test" data-input="{+keys}" data-expected="key1,val1,key2,val2">3.4.11</div>
+            <div class="test" data-input="{+keys*}" data-expected="key1,val1,key2,val2">3.4.12</div>
+            <div class="test" data-input="{+keys+}" data-expected="keys.key1,val1,keys.key2,val2">3.4.13</div>
+
         </div>
         <script type="text/javascript">
             $(function() { restless.test($); });
