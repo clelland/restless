@@ -49,7 +49,15 @@ restless = (function() {
                 }
             }
         } else if (isNotEmpty(value)) {
-            out.push(component(operator, varname, value, modifier));
+            if (operator === ';') {
+                if (value) {
+                    out.push(varname + '=' + component(operator, varname, value, modifier));
+                } else {
+                    out.push(varname);
+                }
+            } else {
+                out.push(component(operator, varname, value, modifier));
+            }
         }
         return out;
     }
@@ -61,7 +69,12 @@ restless = (function() {
             var v = r.varname && (isNotEmpty(context[r.varname]) ? context[r.varname] : r['default']);
             componentList = componentList.concat(components(operator, r.varname, v, r.modifier));
         }
-        return componentList.join(',');
+        var separator=',', prefix='';
+        if (operator === ';') {
+            separator = ';';
+            prefix = ';';
+        }
+        return prefix + componentList.join(separator);
     }
 
     function _resolve(parts, context) {
@@ -88,7 +101,7 @@ restless = (function() {
     }
 
     function tokenize(string) {
-        var expression = /\{(\+)?((\w+)([+*])?(=(\w+))?(,(\w+)([+*])?(=(\w+))?)*)\}/;
+        var expression = /\{([+;])?((\w+)([+*])?(=(\w+))?(,(\w+)([+*])?(=(\w+))?)*)\}/;
         var parts = [];
         while (string) {
             var index = string.search(expression);
