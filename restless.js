@@ -105,6 +105,14 @@ restless = (function() {
             separator = '&';
             prefix = '?';
         }
+        else if (operator === '/') {
+            separator = '/';
+            prefix = '/';
+        }
+        else if (operator === '.') {
+            separator = '.';
+            prefix = '.';
+        }
         return prefix + componentList.join(separator);
     }
 
@@ -132,7 +140,7 @@ restless = (function() {
     }
 
     function tokenize(string) {
-        var expression = /\{([+;?])?((\w+)([+*])?(=(\w+))?(,(\w+)([+*])?(=(\w+))?)*)\}/;
+        var expression = /\{([+;?\/.])?((\w+)([+*])?(=(\w+))?(,(\w+)([+*])?(=(\w+))?)*)\}/;
         var parts = [];
         while (string) {
             var index = string.search(expression);
