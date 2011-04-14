@@ -52,7 +52,7 @@ restless = (function() {
         } else if (value instanceof Object) {
             for (var key in value) {
                 if (value.hasOwnProperty(key)) {
-                    if (operator === ';' && (modifier === '*' || modifier === '+')) {
+                    if ((operator === ';' || operator === '?') && (modifier === '*' || modifier === '+')) {
                         out.push(component(null, varname, key, modifier) + '=' + component(operator, null, value[key], null));
                     } else {
                         out.push(component(null, varname, key, modifier));
@@ -61,17 +61,21 @@ restless = (function() {
                 }
             }
         } else if (isNotEmpty(value)) {
-            if (operator === ';') {
+            if (operator === ';' || operator === '?') {
                 if (value) {
                     out.push(varname + '=' + component(operator, varname, value, modifier));
                 } else {
-                    out.push(varname);
+                    if (operator === '?') {
+                        out.push(varname + '=');
+                    } else {
+                        out.push(varname);
+                    }
                 }
             } else {
                 out.push(component(operator, varname, value, modifier));
             }
         }
-        var separator = (modifier === '+' || modifier === '*') ? (operator === ';' ? ';' : ',') : ',';
+        var separator = (modifier === '+' || modifier === '*') ? (operator === ';' ? ';' : (operator === '?' ? '&' : ',')) : ',';
         return out.join(separator);
     }
 
@@ -89,6 +93,10 @@ restless = (function() {
         if (operator === ';') {
             separator = ';';
             prefix = ';';
+        }
+        else if (operator === '?') {
+            separator = '&';
+            prefix = '?';
         }
         return prefix + componentList.join(separator);
     }
@@ -117,7 +125,7 @@ restless = (function() {
     }
 
     function tokenize(string) {
-        var expression = /\{([+;])?((\w+)([+*])?(=(\w+))?(,(\w+)([+*])?(=(\w+))?)*)\}/;
+        var expression = /\{([+;?])?((\w+)([+*])?(=(\w+))?(,(\w+)([+*])?(=(\w+))?)*)\}/;
         var parts = [];
         while (string) {
             var index = string.search(expression);
