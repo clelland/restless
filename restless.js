@@ -24,13 +24,17 @@ restless = (function() {
     }
 
     function component(operator, varname, value, modifier) {
-        if (operator === '+') {
+        if (operator === ';') {
             value = encodeURI(value);
         } else {
-            value = encodeReserved(value);
-        }
-        if (modifier === '+') {
-            value = varname + '.' + value;
+            if (operator === '+') {
+                value = encodeURI(value);
+            } else {
+                value = encodeReserved(value);
+            }
+            if (modifier === '+') {
+                value = varname + '.' + value;
+            }
         }
         return value;
     }
@@ -39,13 +43,21 @@ restless = (function() {
         var out = [];
         if (value instanceof Array) {
             for (var i=0; i < value.length; i++) {
-                out.push(component(operator, varname, value[i], modifier));
+                if (operator === ';' && modifier === '+') {
+                    out.push(varname + '=' + component(operator, varname, value[i], modifier));
+                } else {
+                    out.push(component(operator, varname, value[i], modifier));
+                }
             }
         } else if (value instanceof Object) {
             for (var key in value) {
                 if (value.hasOwnProperty(key)) {
-                    out.push(component(null, varname, key, modifier));
-                    out.push(component(operator, null, value[key], null));
+                    if (operator === ';' && (modifier === '*' || modifier === '+')) {
+                        out.push(component(null, varname, key, modifier) + '=' + component(operator, null, value[key], null));
+                    } else {
+                        out.push(component(null, varname, key, modifier));
+                        out.push(component(operator, null, value[key], null));
+                    }
                 }
             }
         } else if (isNotEmpty(value)) {
@@ -59,7 +71,8 @@ restless = (function() {
                 out.push(component(operator, varname, value, modifier));
             }
         }
-        return out;
+        var separator = (modifier === '+' || modifier === '*') ? (operator === ';' ? ';' : ',') : ',';
+        return out.join(separator);
     }
 
     function replacementValue(operator, replacements, context) {
@@ -67,7 +80,10 @@ restless = (function() {
         for (var i=0; i < replacements.length; i++) {
             var r = replacements[i];
             var v = r.varname && (isNotEmpty(context[r.varname]) ? context[r.varname] : r['default']);
-            componentList = componentList.concat(components(operator, r.varname, v, r.modifier));
+            var c = components(operator, r.varname, v, r.modifier);
+            if (c) {
+                componentList.push(c);
+            }
         }
         var separator=',', prefix='';
         if (operator === ';') {
