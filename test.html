@@ -77,6 +77,28 @@
             <div class="test" data-input="{?keys*}" data-expected="?key1=val1&key2=val2">3.6.8</div>
             <div class="test" data-input="{?keys+}" data-expected="?keys.key1=val1&keys.key2=val2">3.6.9</div>
 
+            <div class="test" data-input="{/var}" data-expected="/value">3.7.1</div>
+            <div class="test" data-input="{/var,empty}" data-expected="/value/">3.7.2</div>
+            <div class="test" data-input="{/var,undef}" data-expected="/value">3.7.3</div>
+            <div class="test" data-input="{/list}" data-expected="/val1,val2,val3">3.7.4</div>
+            <div class="test" data-input="{/list*}" data-expected="/val1/val2/val3">3.7.5</div>
+            <div class="test" data-input="{/list*,x}" data-expected="/val1/val2/val3/1024">3.7.6</div>
+            <div class="test" data-input="{/list+}" data-expected="/list.val1/list.val2/list.val3">3.7.7</div>
+            <div class="test" data-input="{/keys}" data-expected="/key1,val1,key2,val2">3.7.8</div>
+            <div class="test" data-input="{/keys*}" data-expected="/key1/val1/key2/val2">3.7.9</div>
+            <div class="test" data-input="{/keys+}" data-expected="/keys.key1/val1/keys.key2/val2">3.7.10</div>
+
+            <div class="test" data-input="X{.var}" data-expected="X.value">3.8.1</div>
+            <div class="test" data-input="X{.empty}" data-expected="X.">3.8.2</div>
+            <div class="test" data-input="X{.undef}" data-expected="X">3.8.3</div>
+            <div class="test" data-input="X{.list}" data-expected="X.val1,val2,val3">3.8.4</div>
+            <div class="test" data-input="X{.list*}" data-expected="X.val1.val2.val3">3.8.5</div>
+            <div class="test" data-input="X{.list*,x}" data-expected="X.val1.val2.val3.1024">3.8.6</div>
+            <div class="test" data-input="X{.list+}" data-expected="X.list.val1.list.val2.list.val3">3.8.7</div>
+            <div class="test" data-input="X{.keys}" data-expected="X.key1,val1,key2,val2">3.8.8</div>
+            <div class="test" data-input="X{.keys*}" data-expected="X.key1.val1.key2.val2">3.8.9</div>
+            <div class="test" data-input="X{.keys+}" data-expected="X.keys.key1.val1.keys.key2.val2">3.8.10</div>
+
         </div>
         <script type="text/javascript">
             $(function() { restless.test($); });
