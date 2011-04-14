@@ -67,6 +67,16 @@
             <div class="test" data-input="{;keys*}" data-expected=";key1=val1;key2=val2">3.5.8</div>
             <div class="test" data-input="{;keys+}" data-expected=";keys.key1=val1;keys.key2=val2">3.5.9</div>
 
+            <div class="test" data-input="{?x,y}" data-expected="?x=1024&y=768">3.6.1</div>
+            <div class="test" data-input="{?x,y,empty}" data-expected="?x=1024&y=768&empty=">3.6.2</div>
+            <div class="test" data-input="{?x,y,undef}" data-expected="?x=1024&y=768">3.6.3</div>
+            <div class="test" data-input="{?list}" data-expected="?list=val1,val2,val3">3.6.4</div>
+            <div class="test" data-input="{?list*}" data-expected="?val1&val2&val3">3.6.5</div>
+            <div class="test" data-input="{?list+}" data-expected="?list=val1&list=val2&list=val3">3.6.6</div>
+            <div class="test" data-input="{?keys}" data-expected="?keys=key1,val1,key2,val2">3.6.7</div>
+            <div class="test" data-input="{?keys*}" data-expected="?key1=val1&key2=val2">3.6.8</div>
+            <div class="test" data-input="{?keys+}" data-expected="?keys.key1=val1&keys.key2=val2">3.6.9</div>
+
         </div>
         <script type="text/javascript">
             $(function() { restless.test($); });
