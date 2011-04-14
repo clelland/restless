@@ -43,8 +43,8 @@ restless = (function() {
         var out = [];
         if (value instanceof Array) {
             for (var i=0; i < value.length; i++) {
-                if (operator === ';' && modifier === '+') {
-                    out.push(varname + '=' + component(operator, varname, value[i], modifier));
+                if ((operator === ';' || operator === '?') && modifier === '+') {
+                    out.push(varname + '=' + component(operator, varname, value[i], null));
                 } else {
                     out.push(component(operator, varname, value[i], modifier));
                 }
@@ -61,7 +61,7 @@ restless = (function() {
                 }
             }
         } else if (isNotEmpty(value)) {
-            if (operator === ';' || operator === '?') {
+            if (operator === ';') {
                 if (value) {
                     out.push(varname + '=' + component(operator, varname, value, modifier));
                 } else {
@@ -76,6 +76,13 @@ restless = (function() {
             }
         }
         var separator = (modifier === '+' || modifier === '*') ? (operator === ';' ? ';' : (operator === '?' ? '&' : ',')) : ',';
+        if (operator === '?' && modifier !== '*' && modifier !== '+') {
+            if (isNotEmpty(value)) {
+                return varname + '=' + out.join(separator);
+            } else {
+                return '';
+            }
+        }
         return out.join(separator);
     }
 
