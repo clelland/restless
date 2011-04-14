@@ -39,11 +39,51 @@ restless = (function() {
         return value;
     }
 
-    function components(operator, varname, value, modifier) {
+    // Takes a variable name, a value for that variable, and an optional
+    // modifier, and formats it for query-string interpolation
+    function components_question(varname, value, modifier) {
         var out = [];
         if (value instanceof Array) {
             for (var i=0; i < value.length; i++) {
-                if ((operator === ';' || operator === '?') && modifier === '+') {
+                if (modifier === '+') {
+                    out.push(varname + '=' + component('?', varname, value[i], null));
+                } else {
+                    out.push(component('?', varname, value[i], modifier));
+                }
+            }
+        } else if (value instanceof Object) {
+            for (var key in value) {
+                if (value.hasOwnProperty(key)) {
+                    if (modifier === '*' || modifier === '+') {
+                        out.push(component(null, varname, key, modifier) + '=' + component('?', null, value[key], null));
+                    } else {
+                        out.push(component(null, varname, key, modifier));
+                        out.push(component('?', null, value[key], null));
+                    }
+                }
+            }
+        } else if (isNotEmpty(value)) {
+            out.push(component('?', varname, value, modifier));
+        }
+        var separator = (modifier === '+' || modifier === '*') ? '&' : ',';
+        if (modifier !== '*' && modifier !== '+') {
+            if (isNotEmpty(value)) {
+                return varname + '=' + out.join(separator);
+            } else {
+                return '';
+            }
+        }
+        return out.join(separator);
+    }
+
+    function components(operator, varname, value, modifier) {
+        var out = [];
+        if (operator === '?') {
+            return components_question(varname, value, modifier);
+        }
+        if (value instanceof Array) {
+            for (var i=0; i < value.length; i++) {
+                if (operator === ';' && modifier === '+') {
                     out.push(varname + '=' + component(operator, varname, value[i], null));
                 } else {
                     out.push(component(operator, varname, value[i], modifier));
@@ -52,7 +92,7 @@ restless = (function() {
         } else if (value instanceof Object) {
             for (var key in value) {
                 if (value.hasOwnProperty(key)) {
-                    if ((operator === ';' || operator === '?') && (modifier === '*' || modifier === '+')) {
+                    if (operator === ';' && (modifier === '*' || modifier === '+')) {
                         out.push(component(null, varname, key, modifier) + '=' + component(operator, null, value[key], null));
                     } else {
                         out.push(component(null, varname, key, modifier));
@@ -65,24 +105,13 @@ restless = (function() {
                 if (value) {
                     out.push(varname + '=' + component(operator, varname, value, modifier));
                 } else {
-                    if (operator === '?') {
-                        out.push(varname + '=');
-                    } else {
-                        out.push(varname);
-                    }
+                    out.push(varname);
                 }
             } else {
                 out.push(component(operator, varname, value, modifier));
             }
         }
-        var separator = (modifier === '+' || modifier === '*') ? (operator === ';' ? ';' : (operator === '?' ? '&' : ',')) : ',';
-        if (operator === '?' && modifier !== '*' && modifier !== '+') {
-            if (isNotEmpty(value)) {
-                return varname + '=' + out.join(separator);
-            } else {
-                return '';
-            }
-        }
+        var separator = (modifier === '+' || modifier === '*') ? (operator === ';' ? ';' : ',') : ',';
         return out.join(separator);
     }
 
