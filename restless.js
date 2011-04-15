@@ -24,66 +24,122 @@ restless = (function() {
     }
 
     function component(operator, varname, value, modifier) {
-        if (operator === ';') {
+        if (operator === '+') {
             value = encodeURI(value);
         } else {
-            if (operator === '+') {
-                value = encodeURI(value);
-            } else {
-                value = encodeReserved(value);
-            }
-            if (modifier === '+') {
-                value = varname + '.' + value;
-            }
+            value = encodeReserved(value);
+        }
+        if (modifier === '+') {
+            value = varname + '.' + value;
         }
         return value;
     }
 
-    function components(operator, varname, value, modifier) {
+    // Takes a variable name, a value for that variable, and an optional
+    // modifier, and formats it for basic interpolation. operator may be '+'
+    // for reserved-character encoding
+    function components_basic(operator, varname, value, modifier) {
         var out = [];
         if (value instanceof Array) {
             for (var i=0; i < value.length; i++) {
-                if ((operator === ';' || operator === '?') && modifier === '+') {
-                    out.push(varname + '=' + component(operator, varname, value[i], null));
-                } else {
-                    out.push(component(operator, varname, value[i], modifier));
-                }
+                out.push(component(operator, varname, value[i], modifier));
             }
+            return out.join(',');
         } else if (value instanceof Object) {
             for (var key in value) {
                 if (value.hasOwnProperty(key)) {
-                    if ((operator === ';' || operator === '?') && (modifier === '*' || modifier === '+')) {
-                        out.push(component(null, varname, key, modifier) + '=' + component(operator, null, value[key], null));
-                    } else {
-                        out.push(component(null, varname, key, modifier));
-                        out.push(component(operator, null, value[key], null));
-                    }
+                    out.push(component(null, varname, key, modifier));
+                    out.push(component(operator, null, value[key], null));
                 }
             }
+            return out.join(',');
         } else if (isNotEmpty(value)) {
-            if (operator === ';') {
-                if (value) {
-                    out.push(varname + '=' + component(operator, varname, value, modifier));
+            return component(operator, varname, value, modifier);
+        }
+    }
+
+    // Takes a variable name, a value for that variable, and an optional
+    // modifier, and formats it for url parameter-style interpolation
+    function components_semicolon(varname, value, modifier) {
+        var out = [];
+        var separator = (modifier === '+' || modifier === '*') ? ';' : ',';
+        if (value instanceof Array) {
+            for (var i=0; i < value.length; i++) {
+                if (modifier === '+') {
+                    out.push(varname + '=' + encodeURI(value[i]));
                 } else {
-                    if (operator === '?') {
-                        out.push(varname + '=');
+                    out.push(encodeURI(value[i]));
+                }
+            }
+            return out.join(separator);
+        } else if (value instanceof Object) {
+            for (var key in value) {
+                if (value.hasOwnProperty(key)) {
+                    if (modifier === '*') {
+                        out.push(key + '=' + encodeURI(value[key]));
+                    } else if (modifier === '+') {
+                        out.push(varname + '.' + key + '=' + encodeURI(value[key]));
                     } else {
-                        out.push(varname);
+                        out.push(key);
+                        out.push(encodeURI(value[key]));
                     }
                 }
+            }
+            return out.join(separator);
+        } else if (isNotEmpty(value)) {
+            if (value) {
+                return varname + '=' + encodeURI(value);
             } else {
-                out.push(component(operator, varname, value, modifier));
+                return varname;
             }
         }
-        var separator = (modifier === '+' || modifier === '*') ? (operator === ';' ? ';' : (operator === '?' ? '&' : ',')) : ',';
-        if (operator === '?' && modifier !== '*' && modifier !== '+') {
-            if (isNotEmpty(value)) {
-                return varname + '=' + out.join(separator);
-            } else {
-                return '';
+    }
+
+    // Takes a variable name, a value for that variable, and an optional
+    // modifier, and formats it for query-string interpolation
+    function components_question(varname, value, modifier) {
+        var out = [];
+        if (value instanceof Array) {
+            for (var i=0; i < value.length; i++) {
+                if (modifier === '+') {
+                    out.push(varname + '=' + encodeURI(value[i]));
+                } else {
+                    out.push(encodeURI(value[i]));
+                }
             }
+            if (!modifier) {
+                return varname + '=' + out.join(',');
+            }
+            return out.join('&');
+        } else if (value instanceof Object) {
+            for (var key in value) {
+                if (value.hasOwnProperty(key)) {
+                    if (modifier === '*') {
+                        out.push(key + '=' + encodeURI(value[key]));
+                    } else if (modifier === '+') {
+                        out.push(varname + '.' + key + '=' + encodeURI(value[key]));
+                    } else {
+                        out.push(key);
+                        out.push(encodeURI(value[key]));
+                    }
+                }
+            }
+            if (!modifier) {
+                return varname + '=' + out.join(',');
+            }
+            return out.join('&');
+        } else if (isNotEmpty(value)) {
+            return varname + '=' + encodeURI(value);
         }
-        return out.join(separator);
+    }
+
+    function components(operator, varname, value, modifier) {
+        if (operator === ';') {
+            return components_semicolon(varname, value, modifier);
+        } else if (operator === '?') {
+            return components_question(varname, value, modifier);
+        }
+        return components_basic(operator, varname, value, modifier);
     }
 
     function replacementValue(operator, replacements, context) {
@@ -92,7 +148,7 @@ restless = (function() {
             var r = replacements[i];
             var v = r.varname && (isNotEmpty(context[r.varname]) ? context[r.varname] : r['default']);
             var c = components(operator, r.varname, v, r.modifier);
-            if (c) {
+            if (isNotEmpty(c)) {
                 componentList.push(c);
             }
         }
