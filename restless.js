@@ -40,6 +40,40 @@ restless = (function() {
     }
 
     // Takes a variable name, a value for that variable, and an optional
+    // modifier, and formats it for url parameter-style interpolation
+    function components_semicolon(varname, value, modifier) {
+        var out = [];
+        if (value instanceof Array) {
+            for (var i=0; i < value.length; i++) {
+                if (modifier === '+') {
+                    out.push(varname + '=' + component(';', varname, value[i], null));
+                } else {
+                    out.push(component(';', varname, value[i], modifier));
+                }
+            }
+        } else if (value instanceof Object) {
+            for (var key in value) {
+                if (value.hasOwnProperty(key)) {
+                    if (modifier === '*' || modifier === '+') {
+                        out.push(component(null, varname, key, modifier) + '=' + component(';', null, value[key], null));
+                    } else {
+                        out.push(component(null, varname, key, modifier));
+                        out.push(component(';', null, value[key], null));
+                    }
+                }
+            }
+        } else if (isNotEmpty(value)) {
+            if (value) {
+                out.push(varname + '=' + component(';', varname, value, modifier));
+            } else {
+                out.push(varname);
+            }
+        }
+        var separator = (modifier === '+' || modifier === '*') ? ';' : ',';
+        return out.join(separator);
+    }
+
+    // Takes a variable name, a value for that variable, and an optional
     // modifier, and formats it for query-string interpolation
     function components_question(varname, value, modifier) {
         var out = [];
@@ -78,41 +112,26 @@ restless = (function() {
 
     function components(operator, varname, value, modifier) {
         var out = [];
-        if (operator === '?') {
+        if (operator === ';') {
+            return components_semicolon(varname, value, modifier);
+        } else if (operator === '?') {
             return components_question(varname, value, modifier);
         }
         if (value instanceof Array) {
             for (var i=0; i < value.length; i++) {
-                if (operator === ';' && modifier === '+') {
-                    out.push(varname + '=' + component(operator, varname, value[i], null));
-                } else {
-                    out.push(component(operator, varname, value[i], modifier));
-                }
+                out.push(component(operator, varname, value[i], modifier));
             }
         } else if (value instanceof Object) {
             for (var key in value) {
                 if (value.hasOwnProperty(key)) {
-                    if (operator === ';' && (modifier === '*' || modifier === '+')) {
-                        out.push(component(null, varname, key, modifier) + '=' + component(operator, null, value[key], null));
-                    } else {
-                        out.push(component(null, varname, key, modifier));
-                        out.push(component(operator, null, value[key], null));
-                    }
+                    out.push(component(null, varname, key, modifier));
+                    out.push(component(operator, null, value[key], null));
                 }
             }
         } else if (isNotEmpty(value)) {
-            if (operator === ';') {
-                if (value) {
-                    out.push(varname + '=' + component(operator, varname, value, modifier));
-                } else {
-                    out.push(varname);
-                }
-            } else {
-                out.push(component(operator, varname, value, modifier));
-            }
+            out.push(component(operator, varname, value, modifier));
         }
-        var separator = (modifier === '+' || modifier === '*') ? (operator === ';' ? ';' : ',') : ',';
-        return out.join(separator);
+        return out.join(',');
     }
 
     function replacementValue(operator, replacements, context) {
