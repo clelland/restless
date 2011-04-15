@@ -44,6 +44,7 @@ restless = (function() {
             for (var i=0; i < value.length; i++) {
                 out.push(component(operator, varname, value[i], modifier));
             }
+            return out.join(',');
         } else if (value instanceof Object) {
             for (var key in value) {
                 if (value.hasOwnProperty(key)) {
@@ -51,16 +52,17 @@ restless = (function() {
                     out.push(component(operator, null, value[key], null));
                 }
             }
+            return out.join(',');
         } else if (isNotEmpty(value)) {
             return component(operator, varname, value, modifier);
         }
-        return out.join(',');
     }
 
     // Takes a variable name, a value for that variable, and an optional
     // modifier, and formats it for url parameter-style interpolation
     function components_semicolon(varname, value, modifier) {
         var out = [];
+        var separator = (modifier === '+' || modifier === '*') ? ';' : ',';
         if (value instanceof Array) {
             for (var i=0; i < value.length; i++) {
                 if (modifier === '+') {
@@ -69,6 +71,7 @@ restless = (function() {
                     out.push(encodeURI(value[i]));
                 }
             }
+            return out.join(separator);
         } else if (value instanceof Object) {
             for (var key in value) {
                 if (value.hasOwnProperty(key)) {
@@ -82,17 +85,14 @@ restless = (function() {
                     }
                 }
             }
+            return out.join(separator);
         } else if (isNotEmpty(value)) {
             if (value) {
                 return varname + '=' + encodeURI(value);
             } else {
                 return varname;
             }
-        } else {
-            return;
         }
-        var separator = (modifier === '+' || modifier === '*') ? ';' : ',';
-        return out.join(separator);
     }
 
     // Takes a variable name, a value for that variable, and an optional
@@ -107,6 +107,10 @@ restless = (function() {
                     out.push(encodeURI(value[i]));
                 }
             }
+            if (!modifier) {
+                return varname + '=' + out.join(',');
+            }
+            return out.join('&');
         } else if (value instanceof Object) {
             for (var key in value) {
                 if (value.hasOwnProperty(key)) {
@@ -120,20 +124,13 @@ restless = (function() {
                     }
                 }
             }
+            if (!modifier) {
+                return varname + '=' + out.join(',');
+            }
+            return out.join('&');
         } else if (isNotEmpty(value)) {
             return varname + '=' + encodeURI(value);
-        } else {
-            return;
         }
-        var separator = (modifier === '+' || modifier === '*') ? '&' : ',';
-        if (modifier !== '*' && modifier !== '+') {
-            if (isNotEmpty(value)) {
-                return varname + '=' + out.join(separator);
-            } else {
-                return '';
-            }
-        }
-        return out.join(separator);
     }
 
     function components(operator, varname, value, modifier) {
@@ -141,9 +138,8 @@ restless = (function() {
             return components_semicolon(varname, value, modifier);
         } else if (operator === '?') {
             return components_question(varname, value, modifier);
-        } else {
-            return components_basic(operator, varname, value, modifier);
         }
+        return components_basic(operator, varname, value, modifier);
     }
 
     function replacementValue(operator, replacements, context) {
