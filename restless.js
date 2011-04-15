@@ -62,7 +62,6 @@ restless = (function() {
     // modifier, and formats it for url parameter-style interpolation
     function components_semicolon(varname, value, modifier) {
         var out = [];
-        var separator = (modifier === '+' || modifier === '*') ? ';' : ',';
         if (value instanceof Array) {
             for (var i=0; i < value.length; i++) {
                 if (modifier === '+') {
@@ -71,7 +70,7 @@ restless = (function() {
                     out.push(encodeURI(value[i]));
                 }
             }
-            return out.join(separator);
+            return out.join(modifier ? ';' : ',');
         } else if (value instanceof Object) {
             for (var key in value) {
                 if (value.hasOwnProperty(key)) {
@@ -85,7 +84,7 @@ restless = (function() {
                     }
                 }
             }
-            return out.join(separator);
+            return out.join(modifier ? ';' : ',');
         } else if (isNotEmpty(value)) {
             if (value) {
                 return varname + '=' + encodeURI(value);
@@ -194,15 +193,10 @@ restless = (function() {
     }
 
     function components(operator, varname, value, modifier) {
-        if (operator === ';') {
-            return components_semicolon(varname, value, modifier);
-        } else if (operator === '?') {
-            return components_question(varname, value, modifier);
-        } else if (operator === '/') {
-            return components_slash(varname, value, modifier);
-        } else if (operator === '.') {
-            return components_dot(varname, value, modifier);
-        }
+        if (operator === ';') { return components_semicolon(varname, value, modifier); }
+        if (operator === '?') { return components_question(varname, value, modifier); }
+        if (operator === '/') { return components_slash(varname, value, modifier); }
+        if (operator === '.') { return components_dot(varname, value, modifier); }
         return components_basic(operator, varname, value, modifier);
     }
 
@@ -216,27 +210,12 @@ restless = (function() {
                 componentList.push(c);
             }
         }
-        var separator=',', prefix='';
-        if (operator === ';') {
-            separator = ';';
-            prefix = ';';
-        }
-        else if (operator === '?') {
-            separator = '&';
-            prefix = '?';
-        }
-        else if (operator === '/') {
-            separator = '/';
-            prefix = '/';
-        }
-        else if (operator === '.') {
-            separator = '.';
-            prefix = '.';
-        }
-        if (componentList.length) {
-            return prefix + componentList.join(separator);
-        }
-        return '';
+        if (!componentList.length) { return ''; }
+        if (operator === ';') { return ';' + componentList.join(';'); }
+        if (operator === '?') { return '?' + componentList.join('&'); }
+        if (operator === '/') { return '/' + componentList.join('/'); }
+        if (operator === '.') { return '.' + componentList.join('.'); }
+        return componentList.join(',');
     }
 
     function _resolve(parts, context) {
