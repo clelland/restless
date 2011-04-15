@@ -52,7 +52,7 @@ restless = (function() {
                 }
             }
         } else if (isNotEmpty(value)) {
-            out.push(component(operator, varname, value, modifier));
+            return component(operator, varname, value, modifier);
         }
         return out.join(',');
     }
@@ -84,10 +84,12 @@ restless = (function() {
             }
         } else if (isNotEmpty(value)) {
             if (value) {
-                out.push(varname + '=' + encodeURI(value));
+                return varname + '=' + encodeURI(value);
             } else {
-                out.push(varname);
+                return varname;
             }
+        } else {
+            return;
         }
         var separator = (modifier === '+' || modifier === '*') ? ';' : ',';
         return out.join(separator);
@@ -119,7 +121,9 @@ restless = (function() {
                 }
             }
         } else if (isNotEmpty(value)) {
-            out.push(encodeURI(value));
+            return varname + '=' + encodeURI(value);
+        } else {
+            return;
         }
         var separator = (modifier === '+' || modifier === '*') ? '&' : ',';
         if (modifier !== '*' && modifier !== '+') {
@@ -148,7 +152,7 @@ restless = (function() {
             var r = replacements[i];
             var v = r.varname && (isNotEmpty(context[r.varname]) ? context[r.varname] : r['default']);
             var c = components(operator, r.varname, v, r.modifier);
-            if (c) {
+            if (isNotEmpty(c)) {
                 componentList.push(c);
             }
         }
