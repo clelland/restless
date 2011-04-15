@@ -36,6 +36,28 @@ restless = (function() {
     }
 
     // Takes a variable name, a value for that variable, and an optional
+    // modifier, and formats it for basic interpolation. operator may be '+'
+    // for reserved-character encoding
+    function components_basic(operator, varname, value, modifier) {
+        var out = [];
+        if (value instanceof Array) {
+            for (var i=0; i < value.length; i++) {
+                out.push(component(operator, varname, value[i], modifier));
+            }
+        } else if (value instanceof Object) {
+            for (var key in value) {
+                if (value.hasOwnProperty(key)) {
+                    out.push(component(null, varname, key, modifier));
+                    out.push(component(operator, null, value[key], null));
+                }
+            }
+        } else if (isNotEmpty(value)) {
+            out.push(component(operator, varname, value, modifier));
+        }
+        return out.join(',');
+    }
+
+    // Takes a variable name, a value for that variable, and an optional
     // modifier, and formats it for url parameter-style interpolation
     function components_semicolon(varname, value, modifier) {
         var out = [];
@@ -78,24 +100,26 @@ restless = (function() {
         if (value instanceof Array) {
             for (var i=0; i < value.length; i++) {
                 if (modifier === '+') {
-                    out.push(varname + '=' + component('?', varname, value[i], null));
+                    out.push(varname + '=' + encodeURI(value[i]));
                 } else {
-                    out.push(component('?', varname, value[i], modifier));
+                    out.push(encodeURI(value[i]));
                 }
             }
         } else if (value instanceof Object) {
             for (var key in value) {
                 if (value.hasOwnProperty(key)) {
-                    if (modifier === '*' || modifier === '+') {
-                        out.push(component(null, varname, key, modifier) + '=' + component('?', null, value[key], null));
+                    if (modifier === '*') {
+                        out.push(key + '=' + encodeURI(value[key]));
+                    } else if (modifier === '+') {
+                        out.push(varname + '.' + key + '=' + encodeURI(value[key]));
                     } else {
-                        out.push(component(null, varname, key, modifier));
-                        out.push(component('?', null, value[key], null));
+                        out.push(key);
+                        out.push(encodeURI(value[key]));
                     }
                 }
             }
         } else if (isNotEmpty(value)) {
-            out.push(component('?', varname, value, modifier));
+            out.push(encodeURI(value));
         }
         var separator = (modifier === '+' || modifier === '*') ? '&' : ',';
         if (modifier !== '*' && modifier !== '+') {
@@ -109,27 +133,13 @@ restless = (function() {
     }
 
     function components(operator, varname, value, modifier) {
-        var out = [];
         if (operator === ';') {
             return components_semicolon(varname, value, modifier);
         } else if (operator === '?') {
             return components_question(varname, value, modifier);
+        } else {
+            return components_basic(operator, varname, value, modifier);
         }
-        if (value instanceof Array) {
-            for (var i=0; i < value.length; i++) {
-                out.push(component(operator, varname, value[i], modifier));
-            }
-        } else if (value instanceof Object) {
-            for (var key in value) {
-                if (value.hasOwnProperty(key)) {
-                    out.push(component(null, varname, key, modifier));
-                    out.push(component(operator, null, value[key], null));
-                }
-            }
-        } else if (isNotEmpty(value)) {
-            out.push(component(operator, varname, value, modifier));
-        }
-        return out.join(',');
     }
 
     function replacementValue(operator, replacements, context) {
