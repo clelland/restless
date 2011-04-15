@@ -133,11 +133,43 @@ restless = (function() {
         }
     }
 
+    // Takes a variable name, a value for that variable, and an optional
+    // modifier, and formats it for url path-style interpolation
+    function components_slash(varname, value, modifier) {
+        var out = [];
+        if (value instanceof Array) {
+            for (var i=0; i < value.length; i++) {
+                if (modifier === '+') {
+                    out.push(varname + '.' + encodeURI(value[i]));
+                } else {
+                    out.push(encodeURI(value[i]));
+                }
+            }
+            return out.join(modifier ? '/' : ',');
+        } else if (value instanceof Object) {
+            for (var key in value) {
+                if (value.hasOwnProperty(key)) {
+                    if (modifier === '+') {
+                        out.push(varname + '.' + key);
+                    } else {
+                        out.push(key);
+                    }
+                    out.push(encodeURI(value[key]));
+                }
+            }
+            return out.join(modifier ? '/' : ',');
+        } else if (isNotEmpty(value)) {
+            return encodeURI(value);
+        }
+    }
+
     function components(operator, varname, value, modifier) {
         if (operator === ';') {
             return components_semicolon(varname, value, modifier);
         } else if (operator === '?') {
             return components_question(varname, value, modifier);
+        } else if (operator === '/') {
+            return components_slash(varname, value, modifier);
         }
         return components_basic(operator, varname, value, modifier);
     }
