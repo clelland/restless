@@ -24,17 +24,13 @@ restless = (function() {
     }
 
     function component(operator, varname, value, modifier) {
-        if (operator === ';') {
+        if (operator === '+') {
             value = encodeURI(value);
         } else {
-            if (operator === '+') {
-                value = encodeURI(value);
-            } else {
-                value = encodeReserved(value);
-            }
-            if (modifier === '+') {
-                value = varname + '.' + value;
-            }
+            value = encodeReserved(value);
+        }
+        if (modifier === '+') {
+            value = varname + '.' + value;
         }
         return value;
     }
@@ -46,25 +42,27 @@ restless = (function() {
         if (value instanceof Array) {
             for (var i=0; i < value.length; i++) {
                 if (modifier === '+') {
-                    out.push(varname + '=' + component(';', varname, value[i], null));
+                    out.push(varname + '=' + encodeURI(value[i]));
                 } else {
-                    out.push(component(';', varname, value[i], modifier));
+                    out.push(encodeURI(value[i]));
                 }
             }
         } else if (value instanceof Object) {
             for (var key in value) {
                 if (value.hasOwnProperty(key)) {
-                    if (modifier === '*' || modifier === '+') {
-                        out.push(component(null, varname, key, modifier) + '=' + component(';', null, value[key], null));
+                    if (modifier === '*') {
+                        out.push(key + '=' + encodeURI(value[key]));
+                    } else if (modifier === '+') {
+                        out.push(varname + '.' + key + '=' + encodeURI(value[key]));
                     } else {
-                        out.push(component(null, varname, key, modifier));
-                        out.push(component(';', null, value[key], null));
+                        out.push(key);
+                        out.push(encodeURI(value[key]));
                     }
                 }
             }
         } else if (isNotEmpty(value)) {
             if (value) {
-                out.push(varname + '=' + component(';', varname, value, modifier));
+                out.push(varname + '=' + encodeURI(value));
             } else {
                 out.push(varname);
             }
